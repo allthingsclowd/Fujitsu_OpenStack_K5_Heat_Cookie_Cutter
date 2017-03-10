@@ -24,7 +24,11 @@ Is the native HEAT template being deployed (Not used just if you wanted to play 
 You MUST configure this file to match your environment before deploying.
 It contains an environmental section and an application section.
 The environmental section is where you enter your K5 details whilst the application section is where the 'batches' of parameters to be fed into the heat template are configured.
-Each batch contains list of Heat Template input parameters - each parameter list represents a deployed heat template. 
+Each batch contains list of Heat Template input parameters - each parameter list represents a deployed heat template.
+
+
+Link to Github
+https://github.com/allthingsclowd/Fujitsu_OpenStack_K5_Heat_Cookie_Cutter
 
 
 
