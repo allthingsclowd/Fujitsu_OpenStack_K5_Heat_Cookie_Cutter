@@ -1,3 +1,5 @@
+![openstack heat cookie cutterv2](https://cloud.githubusercontent.com/assets/9472095/23799593/fb63e52c-05a0-11e7-98d1-521e2ee34424.jpg)
+
 # K5_Stack_Deployer - OpenStack Template
 Author: Graham Land
 Date: 08/03/17
