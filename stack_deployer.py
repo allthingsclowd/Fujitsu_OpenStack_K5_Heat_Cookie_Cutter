@@ -34,7 +34,7 @@ def main():
 
     # Deploy the stacks from the batch list
     for parameters in stackBatch1:
-    	stackname = unicode(parameters.get('flavorName')) + unicode("-Perf-Test") 
+    	stackname = unicode(parameters.get('flavorName')) + unicode("-K5Live-JMP") 
     	stackId = deploy_heat_stack(k5token, stackname, demoTemplate, parameters).json()['stack'].get('id')
     	deployedStackIds[stackname] = stackId
     	sleep(10)

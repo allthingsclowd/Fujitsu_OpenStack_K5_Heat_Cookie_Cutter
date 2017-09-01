@@ -1,0 +1,229 @@
+heat_template_version: 2013-05-23
+# Author: Peter Beverley
+# Date: 22/06/17
+# Purpose: Deploys an Ubuntu 16.04 server with tools to facilitate interaction with K5
+#          
+# Installs the OpenStack python client, ansible, PowerShell, Microsoft Visual Code and
+# the Cloud Foundry CLI. Downloads set-k5env.sh from https://github.com/fujitsuk5/k5-envscript
+# to enable rapid setup of the API environment including appropriate environment variables for
+# the python clients.
+
+description: Deploy an Ubuntu 16.04 server with tools to enable interaction with K5
+
+# Input parameters
+parameters:
+  my_ip:
+    type: string
+    label: Remote IP
+    description: IP address from which clients will be accessing the server eg 20.30.40.50/32
+    default: "MY_EXTERNAL_IP"
+  res_prefix:
+    type: string
+    label: Resource naming prefix
+    description: Prefix to be used for names of resources as they're created
+    default: "MY_PREFIX"
+  dns_servers:
+    type: comma_delimited_list
+    label: DNS servers
+    description: Comma delimited list of DNS servers appropriate to the region
+    default: "DNS_1_IP,DNS_2_IP"
+  net_cidr:
+    type: string
+    label: Network Address
+    description: Network address in cidr format for created subnet eg 172.16.0.0/24
+    default: "MY_NETWORK_ADDR"
+  router_int:
+    type: string
+    label: Router interface
+    description: IP address of the router interface eg 172.16.0.1
+    default: "MY_ROUTER_IP"
+  server_image:
+    type: string
+    label: Image name or ID
+    description: Image to deploy, process requires 16.04, do not change unless and until official 16.04 image released
+    default: "Ubuntu Server 16.04 LTS (English) CTO"    
+  key_pair:
+    type: string
+    label: Keypair name
+    default: "MY_KEYPAIR_NAME"
+  tzone_region:
+    type: string
+    label: tzdata timezone region string
+    description: See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+    default: "Europe"
+  tzone_city:
+    type: string
+    label: tzdata timezone city string
+    description: See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+    default: "London"
+  deploy_az:
+    type: string
+    label: AZ in which to deploy
+    default: "MY_REGION"
+  ext_net:
+    type: string
+    label: external network ID
+    description: External network for global ip allocation
+    default: "MY_EXT_NET_ID"    
+  ext_router:
+    type: string
+    label: External Router
+    description: Router with external gateway for global ip allocation
+    default: "MY_ROUTER_ID"
+
+# K5 Infrastructure resources to be built
+resources:
+
+  # Create a private network in availability zone 1
+  private_net:
+    type: OS::Neutron::Net
+    properties:
+      availability_zone: { get_param: deploy_az }
+      name: 
+        str_replace:
+          template: prefix$-net
+          params:
+            prefix$: { get_param: res_prefix }
+
+  # Create a new subnet on the private network
+  private_subnet:
+    type: OS::Neutron::Subnet
+    depends_on: private_net
+    properties:
+      availability_zone: { get_param: deploy_az }
+      name:
+        str_replace:
+          template: prefix$-subnet
+          params:
+            prefix$: { get_param: res_prefix }
+      network_id: { get_resource: private_net }
+      cidr: { get_param: net_cidr }
+      gateway_ip: { get_param: router_int }
+      dns_nameservers: { get_param: [dns_servers] }
+
+  # Connect an interface on the web tier network's subnet to the router
+  router_interface:
+    type: OS::Neutron::RouterInterface
+    depends_on: [private_subnet]
+    properties:
+      router_id: { get_param: ext_router }
+      subnet_id: { get_resource: private_subnet }
+
+  # Create jump server security group
+  ssh_security_group:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      description: SSH remote access
+      name:
+        str_replace:
+          template: prefix$-ssh-sg
+          params:
+            prefix$: { get_param: res_prefix }
+      rules:
+        # allow inbound ssh from my ip
+        - remote_ip_prefix: { get_param: my_ip }
+          protocol: tcp
+          port_range_min: 22
+          port_range_max: 22
+
+  # Create a new port for the server interface, assign an ip address and security group    
+  server_port:
+    type: OS::Neutron::Port
+    depends_on: [ ssh_security_group ]
+    properties:
+      availability_zone: { get_param: deploy_az }
+      network_id: { get_resource: private_net }
+      security_groups: [{ get_resource: ssh_security_group }]
+
+  # Allocate a floating/global ip address
+  server_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      availability_zone: { get_param: deploy_az }
+      floating_network_id: { get_param: ext_net }
+
+      # Assign a floating/global ip address to the fixed server ip address
+  server_floating_ip_association:
+    type: OS::Neutron::FloatingIPAssociation
+    depends_on: server_floating_ip
+    properties:
+      floatingip_id: { get_resource: server_floating_ip }
+      port_id: { get_resource: server_port }
+
+  # Create a system volume for use with the server
+  server_sys_vol:
+    type: OS::Cinder::Volume
+    properties:
+      availability_zone: { get_param: deploy_az }
+      name:
+        str_replace:
+          template: prefix$-sysvol
+          params:
+            prefix$: { get_param: res_prefix }
+      size: 30
+      volume_type: "M1"
+      image : { get_param: server_image }
+
+  # Build a server using the system volume defined above
+  server:
+    type: OS::Nova::Server
+    depends_on: [ server_port ]
+    properties:
+      key_name: { get_param: key_pair }
+      image: { get_param: server_image }
+      flavor: "C-2"
+      admin_user: ubuntu
+      block_device_mapping: [{"volume_size": "30", "volume_id": {get_resource: server_sys_vol}, "delete_on_termination": True, "device_name": "/dev/vda"}]
+      name:
+        str_replace:
+          template: prefix$-server
+          params:
+            prefix$: { get_param: res_prefix }
+      networks:
+        - port: { get_resource: server_port }
+      user_data_format: RAW
+      user_data:
+        str_replace:
+          template: |
+            #cloud-config
+            write_files:
+              - path: /tmp/prep.sh
+                content: |
+                  export CURRVER=$(wget -O- -q https://raw.githubusercontent.com/PowerShell/vscode-powershell/master/CHANGELOG.md | grep "^## " | head -1 | tr -d "# ")
+                  wget https://github.com/PowerShell/vscode-powershell/releases/download/v${CURRVER}/PowerShell-${CURRVER}.vsix
+                  code --install-extension PowerShell-${CURRVER}.vsix
+                  wget https://raw.githubusercontent.com/fujitsuk5/k5env-script/master/set-k5env.sh
+                  chmod 700 ./set-k5env.sh
+                  echo export LANG=en_GB.utf8 >> ./.profile
+            power_state:
+              mode: reboot
+            runcmd:
+              - curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
+              - wget -q -O- https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | apt-key add -
+              - curl https://packages.microsoft.com/config/ubuntu/16.04/prod.list | tee /etc/apt/sources.list.d/microsoft.list
+              - echo "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" | tee /etc/apt/sources.list.d/vscode.list
+              - echo "deb http://packages.cloudfoundry.org/debian stable main" | tee /etc/apt/sources.list.d/cloudfoundry-cli.list
+              - rm /var/lib/apt/lists/* -vf 
+              - apt update
+              - apt upgrade -y
+              - apt install -y python-pip build-essential libssl-dev libffi-dev python-dev libgtk2.0 libxss1 libasound2 libxml2-utils jq cf-cli powershell code
+              - pip install shade==1.11.1 ansible cryptography python-novaclient==8.0.0 python-openstackclient
+              - locale-gen en_GB.utf8
+              - update-locale
+              - echo "tzdata tzdata/Areas select tzone_region$" > /tmp/tz.info
+              - echo "tzdata tzdata/Zones/Europe select tzone_city$" >> /tmp/tz.info
+              - debconf-set-selections /tmp/tz.info
+              - rm /etc/timezone
+              - rm /etc/localtime
+              - dpkg-reconfigure -f noninteractive tzdata
+              - sed -i '/^127\.0\.0\.1\ localhost$/ s/$/ prefix$-server/' /etc/hosts
+              - chmod 777 /tmp/prep.sh
+              - sudo -i -u ubuntu -H sh -C /tmp/prep.sh
+          params:
+            prefix$: { get_param: res_prefix }
+            tzone_region$: { get_param: tzone_region }
+            tzone_city$: { get_param: tzone_city }
+outputs:
+  server_public_ip:
+    description: Global IP for remote SSH access
+    value: { get_attr: [ server_floating_ip, floating_ip_address ] }

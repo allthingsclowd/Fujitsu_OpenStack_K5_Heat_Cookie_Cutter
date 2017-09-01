@@ -22,29 +22,15 @@ demoProjectAid = 'enter target project id' # k5/openstack demo target project id
 # APPLICATION DETAILS
 # Each row below represents the list of input parameters that will be supplied to an instance of an OpenStack heat template
 
-stackBatch = [	{"flavorName":"P-1","kpName": "k5-loadtest-az1", "cidr": "192.168.200.0/24", "dataVolume": "128", "routerId": "211f42b5-6603-43c5-8abc-2af0839acf3c"},
-				{"flavorName":"T-1","kpName": "k5-loadtest-az1", "cidr": "192.168.201.0/24", "dataVolume": "128", "routerId": "211f42b5-6603-43c5-8abc-2af0839acf3c"},
-				{"flavorName":"C-1","kpName": "k5-loadtest-az1", "cidr": "192.168.202.0/24", "dataVolume": "128", "routerId": "211f42b5-6603-43c5-8abc-2af0839acf3c"},
-				{"flavorName":"C-2","kpName": "k5-loadtest-az1", "cidr": "192.168.203.0/24", "dataVolume": "128", "routerId": "211f42b5-6603-43c5-8abc-2af0839acf3c"},
-				{"flavorName":"C-4","kpName": "k5-loadtest-az1", "cidr": "192.168.205.0/24", "dataVolume": "128", "routerId": "211f42b5-6603-43c5-8abc-2af0839acf3c"},
-				{"flavorName":"C-8","kpName": "k5-loadtest-az1", "cidr": "192.168.206.0/24", "dataVolume": "128", "routerId": "211f42b5-6603-43c5-8abc-2af0839acf3c"},
-				{"flavorName":"C-16","kpName": "k5-loadtest-az1", "cidr": "192.168.207.0/24", "dataVolume": "128", "routerId": "211f42b5-6603-43c5-8abc-2af0839acf3c"},
-				{"flavorName":"S-1","kpName": "k5-loadtest-az1", "cidr": "192.168.208.0/24", "dataVolume": "128", "routerId": "211f42b5-6603-43c5-8abc-2af0839acf3c"},
-				{"flavorName":"S-2","kpName": "k5-loadtest-az1", "cidr": "192.168.209.0/24", "dataVolume": "128", "routerId": "211f42b5-6603-43c5-8abc-2af0839acf3c"},
-				{"flavorName":"S-4","kpName": "k5-loadtest-az1", "cidr": "192.168.210.0/24", "dataVolume": "128", "routerId": "211f42b5-6603-43c5-8abc-2af0839acf3c"},
-				{"flavorName":"S-8","kpName": "k5-loadtest-az1", "cidr": "192.168.211.0/24", "dataVolume": "128", "routerId": "211f42b5-6603-43c5-8abc-2af0839acf3c"},
-				{"flavorName":"S-16","kpName": "k5-loadtest-az1", "cidr": "192.168.212.0/24", "dataVolume": "128", "routerId": "211f42b5-6603-43c5-8abc-2af0839acf3c"},				
-				{"flavorName":"P2-1","kpName": "k5-loadtest-az1", "cidr": "192.168.213.0/24", "dataVolume": "128", "routerId": "211f42b5-6603-43c5-8abc-2af0839acf3c"},
-				{"flavorName":"T2-1","kpName": "k5-loadtest-az1", "cidr": "192.168.214.0/24", "dataVolume": "128", "routerId": "211f42b5-6603-43c5-8abc-2af0839acf3c"},
-				{"flavorName":"C2-1","kpName": "k5-loadtest-az1", "cidr": "192.168.215.0/24", "dataVolume": "128", "routerId": "211f42b5-6603-43c5-8abc-2af0839acf3c"},
-				{"flavorName":"C2-2","kpName": "k5-loadtest-az1", "cidr": "192.168.216.0/24", "dataVolume": "128", "routerId": "211f42b5-6603-43c5-8abc-2af0839acf3c"},
-				{"flavorName":"C2-4","kpName": "k5-loadtest-az1", "cidr": "192.168.218.0/24", "dataVolume": "128", "routerId": "211f42b5-6603-43c5-8abc-2af0839acf3c"},
-				{"flavorName":"C2-8","kpName": "k5-loadtest-az1", "cidr": "192.168.219.0/24", "dataVolume": "128", "routerId": "211f42b5-6603-43c5-8abc-2af0839acf3c"},				
-				{"flavorName":"S2-1","kpName": "k5-loadtest-az1", "cidr": "192.168.220.0/24", "dataVolume": "128", "routerId": "211f42b5-6603-43c5-8abc-2af0839acf3c"},
-				{"flavorName":"S2-2","kpName": "k5-loadtest-az1", "cidr": "192.168.221.0/24", "dataVolume": "128", "routerId": "211f42b5-6603-43c5-8abc-2af0839acf3c"},
-				{"flavorName":"S2-4","kpName": "k5-loadtest-az1", "cidr": "192.168.222.0/24", "dataVolume": "128", "routerId": "211f42b5-6603-43c5-8abc-2af0839acf3c"},
-				{"flavorName":"S2-8","kpName": "k5-loadtest-az1", "cidr": "192.168.223.0/24", "dataVolume": "128", "routerId": "211f42b5-6603-43c5-8abc-2af0839acf3c"},				
-				{"flavorName":"M2-1","kpName": "k5-loadtest-az1", "cidr": "192.168.224.0/24", "dataVolume": "128", "routerId": "211f42b5-6603-43c5-8abc-2af0839acf3c"},
-				{"flavorName":"M2-2","kpName": "k5-loadtest-az1", "cidr": "192.168.225.0/24", "dataVolume": "128", "routerId": "211f42b5-6603-43c5-8abc-2af0839acf3c"},
-				{"flavorName":"M2-4","kpName": "k5-loadtest-az1", "cidr": "192.168.226.0/24", "dataVolume": "128", "routerId": "211f42b5-6603-43c5-8abc-2af0839acf3c"}
+targetProjects = {"k5live-0","k5live-1","k5live-2","k5live-3","k5live-4",
+			"k5live-5","k5live-6","k5live-7","k5live-8","k5live-9",
+			"k5live-10","k5live-11","k5live-12","k5live-13","k5live-14",
+			"k5live-15","k5live-16","k5live-17","k5live-18","k5live-19",
+			"k5live-20","k5live-21","k5live-22","k5live-23","k5live-24"}
+
+
+stackBatch_az1 = [	{"my_ip":"31.53.253.24/32","res_prefix":"k5live-az1","dns_servers":"185.149.225.9,185.149.225.10","net_cidr":"192.168.1.0/24","router_int":"192.168.1.1","server_image":"Ubuntu Server 16.04 LTS (English) CTO","key_pair":"K5Live","tzone_region":"Europe","tzone_city":"Helsinki","deploy_az":"de-1a","ext_net":"73598426-3678-4eb6-8131-9007770d3ccd","ext_router":"REPLACE_ME"}
+				]
+
+stackBatch_az2 = [	{"my_ip":"31.53.253.24/32","res_prefix":"k5live-az2","dns_servers":"185.149.227.9,185.149.227.10","net_cidr":"192.168.1.0/24","router_int":"192.168.1.1","server_image":"Ubuntu Server 16.04 LTS (English) CTO","key_pair":"K5Live","tzone_region":"Europe","tzone_city":"Helsinki","deploy_az":"de-1b","ext_net":"58e863e5-7d31-4f32-9178-370a3288db42","ext_router":"REPLACE_ME"}
 				]
